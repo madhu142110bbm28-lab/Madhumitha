@@ -1,0 +1,28 @@
+class Solution:
+    def isMatch(self, s: str, p: str) -> bool:
+        memo = {}
+
+        def dp(i, j):
+            if (i, j) in memo:
+                return memo[(i, j)]
+            
+            # Base case: if we reach the end of the pattern
+            if j == len(p):
+                return i == len(s)
+
+            # Check if current characters match
+            first_match = i < len(s) and p[j] in {s[i], '.'}
+
+            # If there's a '*' coming up next in the pattern
+            if j + 1 < len(p) and p[j+1] == '*':
+                # Option 1: Skip the '*' and its preceding char (treat as 0 occurrences)
+                # Option 2: Use the '*' if the first char matched, and stay at the same pattern index
+                res = dp(i, j + 2) or (first_match and dp(i + 1, j))
+            else:
+                # No '*', move both pointers forward if they match
+                res = first_match and dp(i + 1, j + 1)
+
+            memo[(i, j)] = res
+            return res
+
+        return dp(0, 0)
