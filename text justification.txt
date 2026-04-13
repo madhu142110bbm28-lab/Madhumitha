@@ -1,0 +1,20 @@
+class Solution:
+    def fullJustify(self, words: List[str], maxWidth: int) -> List[str]:
+        res, cur, num_of_letters = [], [], 0
+        for w in words:
+            # Check if adding the next word exceeds maxWidth
+            # len(cur) represents the minimum single spaces between words
+            if num_of_letters + len(w) + len(cur) > maxWidth:
+                # Distribute extra spaces evenly between existing words in the line
+                for i in range(maxWidth - num_of_letters):
+                    # Use modulo to cycle through gaps (left-to-right priority)
+                    # (len(cur) - 1 or 1) handles the single-word-line case
+                    cur[i % (len(cur) - 1 or 1)] += ' '
+                res.append(''.join(cur))
+                cur, num_of_letters = [], 0
+            
+            cur.append(w)
+            num_of_letters += len(w)
+        
+        # Last line: left-justified with trailing spaces
+        return res + [' '.join(cur).ljust(maxWidth)]
