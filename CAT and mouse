@@ -1,0 +1,60 @@
+import collections
+
+class Solution:
+    def catMouseGame(self, graph: List[List[int]]) -> int:
+        n = len(graph)
+        # Result states: 0: Draw, 1: Mouse Win, 2: Cat Win
+        # color[mouse][cat][turn] where turn 0 is Mouse, 1 is Cat
+        color = collections.defaultdict(int)
+        degree = {}
+        
+        # 1. Initialize degrees for all states
+        for m in range(n):
+            for c in range(n):
+                degree[m, c, 0] = len(graph[m])
+                # Cat cannot move to the hole (node 0)
+                degree[m, c, 1] = len([neighbor for neighbor in graph[c] if neighbor != 0])
+        
+        queue = collections.deque()
+        
+        # 2. Set boundary (winning/losing) conditions
+        for i in range(1, n):
+            # Mouse in hole: Mouse wins
+            for t in range(2):
+                color[0, i, t] = 1
+                queue.append((0, i, t, 1))
+            # Cat catches Mouse: Cat wins
+            for t in range(2):
+                color[i, i, t] = 2
+                queue.append((i, i, t, 2))
+                
+        # 3. Propagate results backwards
+        while queue:
+            m, c, t, res = queue.popleft()
+            
+            # Find previous states that could lead to this one
+            prev_states = []
+            if t == 0: # Current is Mouse turn, previous was Cat
+                for prev_c in graph[c]:
+                    if prev_c != 0:
+                        prev_states.append((m, prev_c, 1))
+            else: # Current is Cat turn, previous was Mouse
+                for prev_m in graph[m]:
+                    prev_states.append((prev_m, c, 0))
+            
+            for pm, pc, pt in prev_states:
+                if color[pm, pc, pt] == 0:
+                    # If current result matches the player's goal in prev state
+                    # pt=0 (Mouse turn) and res=1 (Mouse win) OR pt=1 (Cat turn) and res=2 (Cat win)
+                    if (pt == 0 and res == 1) or (pt == 1 and res == 2):
+                        color[pm, pc, pt] = res
+                        queue.append((pm, pc, pt, res))
+                    else:
+                        # Otherwise, decrement degree; if 0, current player loses
+                        degree[pm, pc, pt] -= 1
+                        if degree[pm, pc, pt] == 0:
+                            color[pm, pc, pt] = res
+                            queue.append((pm, pc, pt, res))
+                            
+        return color[1, 2, 0]
+     
