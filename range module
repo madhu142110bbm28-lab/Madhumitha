@@ -1,0 +1,33 @@
+import bisect
+
+class RangeModule:
+    def __init__(self):
+        # Even indices are starts of ranges, odd indices are ends.
+        # Example: [10, 20, 50, 60] represents [10, 20) and [50, 60).
+        self.ranges = []
+
+    def addRange(self, left: int, right: int) -> None:
+        i = bisect.bisect_left(self.ranges, left)
+        j = bisect.bisect_right(self.ranges, right)
+        
+        sub = []
+        if i % 2 == 0: sub.append(left)
+        if j % 2 == 0: sub.append(right)
+            
+        self.ranges[i:j] = sub
+
+    def queryRange(self, left: int, right: int) -> bool:
+        i = bisect.bisect_right(self.ranges, left)
+        j = bisect.bisect_left(self.ranges, right)
+        # Returns True if left and right are within the same interval (i == j and i is odd)
+        return i == j and i % 2 == 1
+
+    def removeRange(self, left: int, right: int) -> None:
+        i = bisect.bisect_left(self.ranges, left)
+        j = bisect.bisect_right(self.ranges, right)
+        
+        sub = []
+        if i % 2 == 1: sub.append(left)
+        if j % 2 == 1: sub.append(right)
+            
+        self.ranges[i:j] = sub
