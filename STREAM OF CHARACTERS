@@ -1,0 +1,39 @@
+class StreamChecker:
+    def __init__(self, words: List[str]):
+        self.trie = {}
+        self.stream = []
+        # Store maximum word length to limit the stream history
+        self.max_len = 0
+        
+        # Build Trie with words reversed
+        for word in words:
+            node = self.trie
+            self.max_len = max(self.max_len, len(word))
+            for char in reversed(word):
+                if char not in node:
+                    node[char] = {}
+                node = node[char]
+            node['#'] = True  # End of word marker
+
+    def query(self, letter: str) -> bool:
+        # 1. Add new letter to history
+        self.stream.append(letter)
+        
+        # 2. Keep only as many characters as the longest word to save space
+        if len(self.stream) > self.max_len:
+            self.stream.pop(0)
+            
+        # 3. Search backwards through the stream in the Trie
+        node = self.trie
+        for i in range(len(self.stream) - 1, -1, -1):
+            char = self.stream[i]
+            if char not in node:
+                return False
+            node = node[char]
+            if '#' in node:
+                return True
+        return False
+
+# Your StreamChecker object will be instantiated and called as such:
+# obj = StreamChecker(words)
+# param_1 = obj.query(letter)
