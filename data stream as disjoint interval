@@ -1,0 +1,50 @@
+import bisect
+
+class SummaryRanges:
+    def __init__(self):
+        # Stores sorted unique start points of intervals
+        self.starts = []
+        # Maps start point to its corresponding end point: {start: end}
+        self.intervals = {}
+
+    def addNum(self, value: int) -> None:
+        if value in self.intervals: return
+        
+        # Find position where value would fit among existing starts
+        idx = bisect.bisect_left(self.starts, value)
+        
+        # Check if value is already contained in the previous interval
+        if idx > 0 and self.intervals[self.starts[idx-1]] >= value:
+            return
+        
+        # Identify if value can bridge or extend neighboring intervals
+        has_prev = idx > 0 and self.intervals[self.starts[idx-1]] + 1 == value
+        has_next = idx < len(self.starts) and self.starts[idx] == value + 1
+        
+        if has_prev and has_next:
+            # Merge: [start_prev, prev_end] + value + [next_start, next_end]
+            new_end = self.intervals.pop(self.starts[idx])
+            self.intervals[self.starts[idx-1]] = new_end
+            self.starts.pop(idx)
+        elif has_prev:
+            # Extend previous: [start_prev, value]
+            self.intervals[self.starts[idx-1]] = value
+        elif has_next:
+            # Extend next: [value, next_end]
+            new_end = self.intervals.pop(self.starts[idx])
+            self.starts[idx] = value
+            self.intervals[value] = new_end
+        else:
+            # New disjoint interval: [value, value]
+            self.starts.insert(idx, value)
+            self.intervals[value] = value
+
+    def getIntervals(self) -> list[list[int]]:
+        # O(N) to build the list, where N is the number of intervals
+        return [[s, self.intervals[s]] for s in self.starts]
+
+
+# Your SummaryRanges object will be instantiated and called as such:
+# obj = SummaryRanges()
+# obj.addNum(value)
+# param_2 = obj.getIntervals()
